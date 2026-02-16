@@ -1,8 +1,12 @@
-# 🦎 Kameleon (`kml`)
+<p align="center">
+  <img src="logo.png" alt="Kamaleon Logo" width="200"/>
+</p>
 
-Kameleon es un envoltorio (*wrapper*) universal, ultrarrápido y sin dependencias escrito en Go para los gestores de paquetes más populares de Linux.
+# 🦎 Kamaleon (`kml`)
 
-Olvídate de cambiar el chip y la sintaxis cuando saltas entre distribuciones o servidores. Kameleon detecta automáticamente tu sistema y traduce comandos genéricos al gestor nativo subyacente de forma transparente.
+Kamaleon es un envoltorio (*wrapper*) universal, ultrarrápido y sin dependencias escrito en Go para los gestores de paquetes más populares de Linux.
+
+Olvídate de cambiar el chip y la sintaxis cuando saltas entre distribuciones o servidores. Kamaleon detecta automáticamente tu sistema y traduce comandos genéricos al gestor nativo subyacente de forma transparente.
 
 **Soporta detección automática de:** `yay`, `paru`, `pacman`, `apt`, `dnf` y `zypper`.
 
@@ -19,8 +23,8 @@ Olvídate de cambiar el chip y la sintaxis cuando saltas entre distribuciones o 
 Clona el repositorio y compila el binario utilizando Go:
 
 ```bash
-git clone https://github.com/anabasasoft/kameleon.git
-cd kameleon
+git clone https://github.com/anabasasoft/kamaleon.git
+cd kamaleon
 go mod init kml
 go build -ldflags="-s -w" -o kml kml.go
 sudo cp kml /usr/local/bin/
