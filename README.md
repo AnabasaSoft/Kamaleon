@@ -8,7 +8,7 @@ Kamaleon es un envoltorio (*wrapper*) universal, ultrarrápido y sin dependencia
 
 Olvídate de cambiar el chip y la sintaxis cuando saltas entre distribuciones o servidores. Kamaleon detecta automáticamente tu sistema y traduce comandos genéricos al gestor nativo subyacente de forma transparente.
 
-**Soporta detección automática de:** `yay`, `paru`, `pacman`, `apt`, `dnf` y `zypper`.
+**Soporta detección automática de:** `yay`, `paru`, `pacman`, `apt`, `dnf`, `zypper`, `apk` y `xbps`.
 
 ## 🚀 Características
 
@@ -69,7 +69,7 @@ La sintaxis siempre es: `kml <acción> [paquetes...]`
 
 ## 🤝 Contribuir
 
-¡Las *Pull Requests* son bienvenidas! Si usas un gestor de paquetes diferente (como `apk` para Alpine o `xbps` para Void) siéntete libre de añadirlo al bloque de traducciones.
+¡Las *Pull Requests* son bienvenidas! Si usas un gestor de paquetes diferente siéntete libre de añadirlo al bloque de traducciones.
 
 ## 📧 Contacto
 

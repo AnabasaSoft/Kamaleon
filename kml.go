@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const Version = "2.4.0"
+const Version = "2.5.0"
 
 // --- COLORES ---
 const (
@@ -111,8 +111,12 @@ func main() {
 }
 
 func detectarGestor() string {
-	for _, g := range []string{"yay", "paru", "pacman", "apt", "dnf", "zypper"} {
-		if _, err := exec.LookPath(g); err == nil { return g }
+	// Añadimos apk y xbps-install a la lista de candidatos
+	candidatos := []string{"yay", "paru", "pacman", "apt", "dnf", "zypper", "apk", "xbps-install"}
+	for _, g := range candidatos {
+		if _, err := exec.LookPath(g); err == nil {
+			return g
+		}
 	}
 	return ""
 }
@@ -144,58 +148,102 @@ func mostrarAyuda(gestor string, t Translation) {
 
 func mapearComando(gestor, accion, paq string, t Translation) string {
 	esAUR := (gestor == "yay" || gestor == "paru")
-	esPacman := (gestor == "pacman" || esAUR)
 
 	switch accion {
 		case "in", "instalar", "install":
 			if esAUR { return gestor + " -S " + paq }
 			if gestor == "pacman" { return "sudo pacman -S " + paq }
+			if gestor == "apk" { return "sudo apk add " + paq }
+			if gestor == "xbps" { return "sudo xbps-install -S " + paq }
 			return "sudo " + gestor + " install " + paq
+
 		case "rm", "quitar", "remove":
-			if esPacman { return gestor + " -Rs " + paq }
+			if esAUR { return gestor + " -Rs " + paq }
+			if gestor == "pacman" { return "sudo pacman -Rs " + paq }
+			if gestor == "apk" { return "sudo apk del " + paq }
+			if gestor == "xbps" { return "sudo xbps-remove -R " + paq }
 			return "sudo " + gestor + " remove " + paq
+
 		case "up", "actualizar", "update":
-			if esPacman { return gestor + " -Syu" }
+			if esAUR { return gestor + " -Syu" }
+			if gestor == "pacman" { return "sudo pacman -Syu" }
 			if gestor == "apt" { return "sudo apt update && sudo apt upgrade" }
-			return "sudo " + gestor + " upgrade"
+			if gestor == "apk" { return "sudo apk update && sudo apk upgrade" }
+			if gestor == "xbps" { return "sudo xbps-install -Su" }
+			return "sudo " + gestor + " upgrade" // dnf y zypper usan 'upgrade' o 'up'
+
 		case "dup", "dist-upgrade":
-			if esPacman { return gestor + " -Syyu" }
+			if esAUR { return gestor + " -Syyu" }
+			if gestor == "pacman" { return "sudo pacman -Syyu" }
 			if gestor == "apt" { return "sudo apt update && sudo apt full-upgrade" }
 			if gestor == "dnf" { return "sudo dnf distro-sync" }
-			return "sudo zypper dup"
+			if gestor == "apk" { return "sudo apk update && sudo apk upgrade -a" }
+			if gestor == "xbps" { return "sudo xbps-install -Su" } // Void es rolling puro
+			if gestor == "zypper" { return "sudo zypper dup" }
+			return ""
+
 		case "re", "refrescar", "refresh":
-			if esPacman { return gestor + " -Sy" }
+			if esAUR { return gestor + " -Sy" }
+			if gestor == "pacman" { return "sudo pacman -Sy" }
 			if gestor == "dnf" { return "sudo dnf makecache" }
 			if gestor == "zypper" { return "sudo zypper ref" }
+			if gestor == "apk" { return "sudo apk update" }
+			if gestor == "xbps" { return "sudo xbps-install -S" }
 			return "sudo apt update"
+
 		case "se", "buscar", "search":
-			if esPacman { return gestor + " -Ss " + paq + ` | grep --color=auto -i -E -A 1 "^[^/]+/[^ ]*` + paq + `"` }
+			// Búsqueda estricta (solo nombre)
+			if esAUR || gestor == "pacman" { return gestor + " -Ss " + paq + ` | grep --color=auto -i -E -A 1 "^[^/]+/[^ ]*` + paq + `"` }
 			if gestor == "apt" { return "apt search --names-only " + paq }
 			if gestor == "dnf" { return "dnf list \"*" + paq + "*\" 2>/dev/null" }
-			return "zypper se -n " + paq
+			if gestor == "zypper" { return "zypper se -n " + paq }
+			if gestor == "apk" { return "apk search " + paq }
+			if gestor == "xbps" { return "xbps-query -Rs " + paq }
+			return ""
+
 		case "sd", "bdesc", "sdesc":
-			if esPacman { return gestor + " -Ss " + paq }
+			// Búsqueda amplia
+			if esAUR || gestor == "pacman" { return gestor + " -Ss " + paq }
+			if gestor == "apk" { return "apk search -v -d " + paq }
+			if gestor == "xbps" { return "xbps-query -Rs " + paq }
 			return gestor + " search " + paq
+
 		case "info", "ver", "show":
-			if esPacman { return gestor + " -Si " + paq }
+			if esAUR || gestor == "pacman" { return gestor + " -Si " + paq }
+			if gestor == "apt" { return "apt show " + paq }
+			if gestor == "apk" { return "apk info -d -s " + paq }
+			if gestor == "xbps" { return "xbps-query -RS " + paq }
 			return gestor + " info " + paq
+
 		case "li", "lista", "list":
 			if paq == "" {
-				if esPacman { return gestor + " -Qe" }
+				if esAUR || gestor == "pacman" { return gestor + " -Qe" }
 				if gestor == "apt" { return "apt list --installed 2>/dev/null" }
+				if gestor == "apk" { return "apk info" }
+				if gestor == "xbps" { return "xbps-query -l" }
+				if gestor == "zypper" { return "zypper se -i" }
 				return gestor + " list installed"
 			}
-			if esPacman { return gestor + " -Q | grep --color=auto -i \"" + paq + "\"" }
+			if esAUR || gestor == "pacman" { return gestor + " -Q | grep --color=auto -i \"" + paq + "\"" }
+			if gestor == "apk" { return "apk info | grep -i " + paq }
+			if gestor == "xbps" { return "xbps-query -l | grep -i " + paq }
 			return gestor + " list installed | grep -i " + paq
+
 		case "ar", "autoremove", "huerfanos":
 			if gestor == "yay" { return "yay -Yc" }
 			if gestor == "paru" { return "paru -c" }
 			if gestor == "pacman" { return "pacman -Qdtq | sudo xargs -r pacman -Rns" }
 			if gestor == "zypper" { return "echo -e \"" + t.NotaZypper + "\"" }
+			if gestor == "apk" { return "echo \"En Alpine se usa 'clean' para mantenimiento. Ejecuta: kml cl\"" }
+			if gestor == "xbps" { return "sudo xbps-remove -O" }
 			return "sudo " + gestor + " autoremove"
+
 		case "cl", "limpiar", "clean":
-			if esPacman { return gestor + " -Sc" }
+			if esAUR { return gestor + " -Sc" }
+			if gestor == "pacman" { return "sudo pacman -Sc" }
 			if gestor == "dnf" { return "sudo dnf clean all" }
+			if gestor == "apk" { return "sudo apk cache clean" }
+			if gestor == "xbps" { return "sudo xbps-remove -O" }
 			return "sudo " + gestor + " clean"
 	}
 	return ""
