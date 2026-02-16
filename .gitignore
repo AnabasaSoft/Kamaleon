@@ -1,0 +1,21 @@
+
+# Ignorar archivos temporales del sistema
+*~
+.DS_Store
+
+# Binario compilado
+kml
+
+# Archivos de suma de comprobación de Go (se generan al descargar dependencias)
+go.sum
+
+# Archivos temporales de Kate y editores de texto
+*~
+*.swp
+.kate-swp
+
+# Logs de errores
+*.log
+
+# Si decides que el script original de bash ya no es necesario en el repo
+kml.sh

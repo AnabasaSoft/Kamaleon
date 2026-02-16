@@ -1,0 +1,41 @@
+#compdef kml
+
+local -a comandos
+comandos=(
+    'in:Instalar paquetes (repos y AUR)'
+    'instalar:Instalar paquetes (repos y AUR)'
+    'install:Instalar paquetes (repos y AUR)'
+    'rm:Desinstalar paquetes y limpiar dependencias'
+    'quitar:Desinstalar paquetes y limpiar dependencias'
+    'remove:Desinstalar paquetes y limpiar dependencias'
+    'up:Actualizar el sistema (conservador)'
+    'actualizar:Actualizar el sistema (conservador)'
+    'update:Actualizar el sistema (conservador)'
+    'dup:Actualización profunda (-Syyu)'
+    'dist-upgrade:Actualización profunda (-Syyu)'
+    're:Refrescar únicamente los repositorios'
+    'refrescar:Refrescar únicamente los repositorios'
+    'refresh:Refrescar únicamente los repositorios'
+    'se:Buscar estrictamente por nombre'
+    'buscar:Buscar estrictamente por nombre'
+    'search:Buscar estrictamente por nombre'
+    'sd:Buscar por nombre y descripción'
+    'bdesc:Buscar por nombre y descripción'
+    'sdesc:Buscar por nombre y descripción'
+    'info:Ver detalles técnicos de un paquete'
+    'ver:Ver detalles técnicos de un paquete'
+    'show:Ver detalles técnicos de un paquete'
+    'li:Listar paquetes instalados'
+    'lista:Listar paquetes instalados'
+    'list:Listar paquetes instalados'
+    'ar:Eliminar dependencias huérfanas'
+    'autoremove:Eliminar dependencias huérfanas'
+    'huerfanos:Eliminar dependencias huérfanas'
+    'cl:Limpiar la caché de paquetes descargados'
+    'limpiar:Limpiar la caché de paquetes descargados'
+    'clean:Limpiar la caché de paquetes descargados'
+    '-h:Mostrar la ayuda del programa'
+    '--help:Mostrar la ayuda del programa'
+)
+
+_describe 'comandos' comandos
