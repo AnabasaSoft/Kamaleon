@@ -19,3 +19,4 @@ go.sum
 
 # Si decides que el script original de bash ya no es necesario en el repo
 kml.sh
+actualiza.sh

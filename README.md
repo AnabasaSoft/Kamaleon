@@ -70,3 +70,7 @@ La sintaxis siempre es: `kml <acción> [paquetes...]`
 ## 🤝 Contribuir
 
 ¡Las *Pull Requests* son bienvenidas! Si usas un gestor de paquetes diferente (como `apk` para Alpine o `xbps` para Void) siéntete libre de añadirlo al bloque de traducciones.
+
+## 📧 Contacto
+
+Para preguntas, sugerencias o reportar problemas: **anabasasoft@gmail.com**
