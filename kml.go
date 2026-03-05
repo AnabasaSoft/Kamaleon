@@ -149,102 +149,101 @@ func mostrarAyuda(gestor string, t Translation) {
 func mapearComando(gestor, accion, paq string, t Translation) string {
 	esAUR := (gestor == "yay" || gestor == "paru")
 
+	// Detectamos si Flatpak existe en el sistema una sola vez
+	tieneFlatpak := false
+	if _, err := exec.LookPath("flatpak"); err == nil {
+		tieneFlatpak = true
+	}
+
+	var cmd string
+
 	switch accion {
 		case "in", "instalar", "install":
-			if esAUR { return gestor + " -S " + paq }
-			if gestor == "pacman" { return "sudo pacman -S " + paq }
-			if gestor == "apk" { return "sudo apk add " + paq }
-			if gestor == "xbps" { return "sudo xbps-install -S " + paq }
-			return "sudo " + gestor + " install " + paq
+			if esAUR { cmd = gestor + " -S " + paq } else if gestor == "pacman" { cmd = "sudo pacman -S " + paq } else if gestor == "apk" { cmd = "sudo apk add " + paq } else if gestor == "xbps" { cmd = "sudo xbps-install -S " + paq } else { cmd = "sudo " + gestor + " install " + paq }
+
+			if tieneFlatpak {
+				// Si falla la instalación nativa, intenta con flatpak automáticamente
+				return cmd + " || flatpak install " + paq
+			}
+			return cmd
 
 		case "rm", "quitar", "remove":
-			if esAUR { return gestor + " -Rs " + paq }
-			if gestor == "pacman" { return "sudo pacman -Rs " + paq }
-			if gestor == "apk" { return "sudo apk del " + paq }
-			if gestor == "xbps" { return "sudo xbps-remove -R " + paq }
-			return "sudo " + gestor + " remove " + paq
+			if esAUR { cmd = gestor + " -Rs " + paq } else if gestor == "pacman" { cmd = "sudo pacman -Rs " + paq } else if gestor == "apk" { cmd = "sudo apk del " + paq } else if gestor == "xbps" { cmd = "sudo xbps-remove -R " + paq } else { cmd = "sudo " + gestor + " remove " + paq }
+
+			if tieneFlatpak {
+				// Ejecuta ambos para asegurar que se borra de cualquier ecosistema
+				return cmd + " ; flatpak uninstall " + paq
+			}
+			return cmd
 
 		case "up", "actualizar", "update":
-			if esAUR { return gestor + " -Syu" }
-			if gestor == "pacman" { return "sudo pacman -Syu" }
-			if gestor == "apt" { return "sudo apt update && sudo apt upgrade" }
-			if gestor == "apk" { return "sudo apk update && sudo apk upgrade" }
-			if gestor == "xbps" { return "sudo xbps-install -Su" }
-			return "sudo " + gestor + " upgrade" // dnf y zypper usan 'upgrade' o 'up'
-
-		case "dup", "dist-upgrade":
-			if esAUR { return gestor + " -Syyu" }
-			if gestor == "pacman" { return "sudo pacman -Syyu" }
-			if gestor == "apt" { return "sudo apt update && sudo apt full-upgrade" }
-			if gestor == "dnf" { return "sudo dnf distro-sync" }
-			if gestor == "apk" { return "sudo apk update && sudo apk upgrade -a" }
-			if gestor == "xbps" { return "sudo xbps-install -Su" } // Void es rolling puro
-			if gestor == "zypper" { return "sudo zypper dup" }
-			return ""
-
-		case "re", "refrescar", "refresh":
-			if esAUR { return gestor + " -Sy" }
-			if gestor == "pacman" { return "sudo pacman -Sy" }
-			if gestor == "dnf" { return "sudo dnf makecache" }
-			if gestor == "zypper" { return "sudo zypper ref" }
-			if gestor == "apk" { return "sudo apk update" }
-			if gestor == "xbps" { return "sudo xbps-install -S" }
-			return "sudo apt update"
-
-		case "se", "buscar", "search":
-			// Búsqueda estricta (solo nombre)
-			if esAUR || gestor == "pacman" { return gestor + " -Ss " + paq + ` | grep --color=auto -i -E -A 1 "^[^/]+/[^ ]*` + paq + `"` }
-			if gestor == "apt" { return "apt search --names-only " + paq }
-			if gestor == "dnf" { return "dnf list \"*" + paq + "*\" 2>/dev/null" }
-			if gestor == "zypper" { return "zypper se -n " + paq }
-			if gestor == "apk" { return "apk search " + paq }
-			if gestor == "xbps" { return "xbps-query -Rs " + paq }
-			return ""
-
-		case "sd", "bdesc", "sdesc":
-			// Búsqueda amplia
-			if esAUR || gestor == "pacman" { return gestor + " -Ss " + paq }
-			if gestor == "apk" { return "apk search -v -d " + paq }
-			if gestor == "xbps" { return "xbps-query -Rs " + paq }
-			return gestor + " search " + paq
-
-		case "info", "ver", "show":
-			if esAUR || gestor == "pacman" { return gestor + " -Si " + paq }
-			if gestor == "apt" { return "apt show " + paq }
-			if gestor == "apk" { return "apk info -d -s " + paq }
-			if gestor == "xbps" { return "xbps-query -RS " + paq }
-			return gestor + " info " + paq
-
-		case "li", "lista", "list":
-			if paq == "" {
-				if esAUR || gestor == "pacman" { return gestor + " -Qe" }
-				if gestor == "apt" { return "apt list --installed 2>/dev/null" }
-				if gestor == "apk" { return "apk info" }
-				if gestor == "xbps" { return "xbps-query -l" }
-				if gestor == "zypper" { return "zypper se -i" }
-				return gestor + " list installed"
+			switch gestor {
+				case "yay", "paru": cmd = gestor + " -Syu"
+				case "pacman": cmd = "sudo pacman -Syu"
+				case "apt": cmd = "sudo apt update && sudo apt upgrade"
+				case "apk": cmd = "sudo apk update && sudo apk upgrade"
+				case "xbps": cmd = "sudo xbps-install -Su"
+				default: cmd = "sudo " + gestor + " upgrade"
 			}
-			if esAUR || gestor == "pacman" { return gestor + " -Q | grep --color=auto -i \"" + paq + "\"" }
-			if gestor == "apk" { return "apk info | grep -i " + paq }
-			if gestor == "xbps" { return "xbps-query -l | grep -i " + paq }
-			return gestor + " list installed | grep -i " + paq
+			if tieneFlatpak { return cmd + " && flatpak update" }
+			return cmd
 
-		case "ar", "autoremove", "huerfanos":
-			if gestor == "yay" { return "yay -Yc" }
-			if gestor == "paru" { return "paru -c" }
-			if gestor == "pacman" { return "pacman -Qdtq | sudo xargs -r pacman -Rns" }
-			if gestor == "zypper" { return "echo -e \"" + t.NotaZypper + "\"" }
-			if gestor == "apk" { return "echo \"En Alpine se usa 'clean' para mantenimiento. Ejecuta: kml cl\"" }
-			if gestor == "xbps" { return "sudo xbps-remove -O" }
-			return "sudo " + gestor + " autoremove"
+				case "dup", "dist-upgrade":
+					switch gestor {
+						case "yay", "paru": cmd = gestor + " -Syyu"
+						case "pacman": cmd = "sudo pacman -Syyu"
+						case "apt": cmd = "sudo apt update && sudo apt full-upgrade"
+						case "dnf": cmd = "sudo dnf distro-sync"
+						case "apk": cmd = "sudo apk update && sudo apk upgrade -a"
+						case "xbps": cmd = "sudo xbps-install -Su"
+						case "zypper": cmd = "sudo zypper dup"
+						default: return ""
+					}
+					if tieneFlatpak { return cmd + " && flatpak update" }
+					return cmd
 
-		case "cl", "limpiar", "clean":
-			if esAUR { return gestor + " -Sc" }
-			if gestor == "pacman" { return "sudo pacman -Sc" }
-			if gestor == "dnf" { return "sudo dnf clean all" }
-			if gestor == "apk" { return "sudo apk cache clean" }
-			if gestor == "xbps" { return "sudo xbps-remove -O" }
-			return "sudo " + gestor + " clean"
+						case "re", "refrescar", "refresh":
+							if esAUR { cmd = gestor + " -Sy" } else if gestor == "pacman" { cmd = "sudo pacman -Sy" } else if gestor == "dnf" { cmd = "sudo dnf makecache" } else if gestor == "zypper" { cmd = "sudo zypper ref" } else if gestor == "apk" { cmd = "sudo apk update" } else if gestor == "xbps" { cmd = "sudo xbps-install -S" } else { cmd = "sudo apt update" }
+							// Flatpak no tiene un refresco aislado útil aquí, lo omitimos
+							return cmd
+
+						case "se", "buscar", "search":
+							if esAUR || gestor == "pacman" { cmd = gestor + " -Ss " + paq + ` | grep --color=auto -i -E -A 1 "^[^/]+/[^ ]*` + paq + `"` } else if gestor == "apt" { cmd = "apt search --names-only " + paq } else if gestor == "dnf" { cmd = "dnf list \"*" + paq + "*\" 2>/dev/null" } else if gestor == "zypper" { cmd = "zypper se -n " + paq } else if gestor == "apk" { cmd = "apk search " + paq } else if gestor == "xbps" { cmd = "xbps-query -Rs " + paq }
+							if tieneFlatpak && cmd != "" {
+								// Añade título en color cyan y lanza búsqueda en flatpak
+								return cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq
+							}
+							return cmd
+
+						case "sd", "bdesc", "sdesc":
+							if esAUR || gestor == "pacman" { cmd = gestor + " -Ss " + paq } else if gestor == "apk" { cmd = "apk search -v -d " + paq } else if gestor == "xbps" { cmd = "xbps-query -Rs " + paq } else { cmd = gestor + " search " + paq }
+							if tieneFlatpak { return cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq }
+							return cmd
+
+						case "info", "ver", "show":
+							if esAUR || gestor == "pacman" { cmd = gestor + " -Si " + paq } else if gestor == "apt" { cmd = "apt show " + paq } else if gestor == "apk" { cmd = "apk info -d -s " + paq } else if gestor == "xbps" { cmd = "xbps-query -RS " + paq } else { cmd = gestor + " info " + paq }
+							if tieneFlatpak { return cmd + " ; flatpak info " + paq + " 2>/dev/null" }
+							return cmd
+
+						case "li", "lista", "list":
+							if paq == "" {
+								if esAUR || gestor == "pacman" { cmd = gestor + " -Qe" } else if gestor == "apt" { cmd = "apt list --installed 2>/dev/null" } else if gestor == "apk" { cmd = "apk info" } else if gestor == "xbps" { cmd = "xbps-query -l" } else if gestor == "zypper" { cmd = "zypper se -i" } else { cmd = gestor + " list installed" }
+								if tieneFlatpak { return cmd + ` ; printf "\n\033[36m--- Flatpaks Instalados ---\033[0m\n" ; flatpak list` }
+								return cmd
+							}
+							if esAUR || gestor == "pacman" { cmd = gestor + " -Q | grep --color=auto -i \"" + paq + "\"" } else if gestor == "apk" { cmd = "apk info | grep -i " + paq } else if gestor == "xbps" { cmd = "xbps-query -l | grep -i " + paq } else { cmd = gestor + " list installed | grep -i " + paq }
+							if tieneFlatpak { return cmd + " ; flatpak list | grep -i " + paq }
+							return cmd
+
+						case "ar", "autoremove", "huerfanos":
+							if gestor == "yay" { cmd = "yay -Yc" } else if gestor == "paru" { cmd = "paru -c" } else if gestor == "pacman" { cmd = "pacman -Qdtq | sudo xargs -r pacman -Rns" } else if gestor == "zypper" { cmd = "echo -e \"" + t.NotaZypper + "\"" } else if gestor == "apk" { cmd = "echo \"En Alpine se usa 'clean' para mantenimiento.\"" } else if gestor == "xbps" { cmd = "sudo xbps-remove -O" } else { cmd = "sudo " + gestor + " autoremove" }
+							if tieneFlatpak { return cmd + " ; flatpak uninstall --unused" }
+							return cmd
+
+						case "cl", "limpiar", "clean":
+							if esAUR { cmd = gestor + " -Sc" } else if gestor == "pacman" { cmd = "sudo pacman -Sc" } else if gestor == "dnf" { cmd = "sudo dnf clean all" } else if gestor == "apk" { cmd = "sudo apk cache clean" } else if gestor == "xbps" { cmd = "sudo xbps-remove -O" } else { cmd = "sudo " + gestor + " clean" }
+							if tieneFlatpak { return cmd + " ; flatpak uninstall --unused" }
+							return cmd
 	}
 	return ""
 }
