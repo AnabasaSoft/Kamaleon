@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const Version = "2.6.1"
+const Version = "2.6.2"
 
 // --- COLORES ---
 const (
@@ -67,6 +67,18 @@ var locales = map[string]Translation{
 	"ja": {
 		Header: "kml - ユニバーサルパッケージマネージャラッパー", Detected: "検出されたマネージャ", Usage: "使い方", MainActions: "主なアクション", Options: "オプション", Executing: "実行中", ErrorRoot: "エラー：kmlを'sudo'で実行しないでください。", ErrorManager: "エラー：マネージャが見つかりません。", ErrorAction: "エラー：アクション '%s' は無効です。", NotaZypper: "注意：Zypperは'rm'で孤立パッケージを管理します。",
 		Actions: map[string]string{"in":"パッケージをインストール（公式リポジトリおよびAUR）。","rm":"パッケージを削除し、依存関係を安全にクリーンアップします。","up":"システムとリポジトリを更新します（保守モード）。","dup":"ディープアップデート（full-upgrade または -Syyu）。","re":"リポジトリのデータベースのみを更新します。","se":"名前でパッケージを厳密に検索します。","sd":"名前と説明の両方で幅広く検索します。","info":"パッケージの技術詳細、バージョン、サイズを表示します。","li":"インストール済みの全パッケージを表示または検索します。","ar":"システムから孤立した依存関係を追跡して削除します。","cl":"ダウンロードしたパッケージのキャッシュをクリアして空き容量を増やします。"},
+	},
+	"eu": {
+		Header: "kml - Pakete-kudeatzaileentzako bilgarri unibertsala", Detected: "Detektatutako kudeatzailea", Usage: "ERABILERA", MainActions: "EKINTZA NAGUSIAK", Options: "AUKERAK", Executing: "Exekutatzen", ErrorRoot: "Errorea: Ez exekutatu kml 'sudo'-rekin.", ErrorManager: "Errorea: Ez da kudeatzailerik detektatu.", ErrorAction: "Errorea: '%s' ekintza ezezaguna.", NotaZypper: "Oharra: Zypper-ek umezurtzak 'rm'-rekin kudeatzen ditu.",
+		Actions: map[string]string{"in":"Paketeak instalatzen ditu (biltegi ofizialak eta AUR).","rm":"Paketeak desinstalatzen ditu, menpekotasunak modu seguruan garbituz.","up":"Sistema eta biltegiak eguneratzen ditu (modu kontserbadorea).","dup":"Eguneratze sakona (full-upgrade, distro-sync edo -Syyu).","re":"Biltegien datu-baseak soilik freskatzen ditu.","se":"Paketeak bilatzen ditu, IZENAREN arabera zorrotz iragaziz.","sd":"Izenaren eta DESKRIBAPENAREN arabera bilaketa zabala egiten du.","info":"Pakete baten xehetasun teknikoak, bertsioa eta pisua erakusten ditu.","li":"Instalatutako pakete guztiak zerrendatzen ditu edo haien artean bilatzen du.","ar":"Sistemako menpekotasun umezurtzak arakatu eta ezabatzen ditu.","cl":"Deskargatutako paketeen katxea husten du lekua askatzeko."},
+	},
+	"ca": {
+		Header: "kml - Embolcall universal per a gestors de paquets", Detected: "Gestor actual detectat", Usage: "ÚS", MainActions: "ACCIONS PRINCIPALS", Options: "OPCIONS", Executing: "Executant", ErrorRoot: "Error: No executis kml amb 'sudo'.", ErrorManager: "Error: No s'ha detectat cap gestor.", ErrorAction: "Error: Acció '%s' no reconeguda.", NotaZypper: "Nota: Zypper gestiona els orfes amb 'rm'.",
+		Actions: map[string]string{"in":"Instal·la paquets (repositoris oficials i AUR).","rm":"Desinstal·la paquets netejant dependències de manera segura.","up":"Actualitza el sistema i els repositoris (mode conservador).","dup":"Actualització profunda (full-upgrade, distro-sync o -Syyu).","re":"Refresca únicament les bases de dades dels repositoris.","se":"Cerca paquets filtrant estrictament pel NOM.","sd":"Cerca de manera àmplia en el nom i en la DESCRIPCIÓ.","info":"Mostra detalls tècnics, versió i pes d'un paquet.","li":"Llista tots els paquets instal·lats o cerca entre ells.","ar":"Rastreja i elimina dependències òrfenes del sistema.","cl":"Buida la memòria cau de paquets descarregats per alliberar espai."},
+	},
+	"gl": {
+		Header: "kml - Envoltorio universal para xestores de paquetes", Detected: "Xestor actual detectado", Usage: "USO", MainActions: "ACCIÓNS PRINCIPAIS", Options: "OPCIÓNS", Executing: "Executando", ErrorRoot: "Erro: Non executes kml con 'sudo'.", ErrorManager: "Erro: Non se detectou xestor.", ErrorAction: "Erro: Acción '%s' non recoñecida.", NotaZypper: "Nota: Zypper xestiona os orfos con 'rm'.",
+		Actions: map[string]string{"in":"Instala paquetes (repositorios oficiais e AUR).","rm":"Desinstala paquetes limpando dependencias de forma segura.","up":"Actualiza o sistema e os repositorios (modo conservador).","dup":"Actualización profunda (full-upgrade, distro-sync ou -Syyu).","re":"Refresca unicamente as bases de datos dos repositorios.","se":"Busca paquetes filtrando estritamente polo NOME.","sd":"Busca de forma ampla no nome e na DESCRICIÓN.","info":"Mostra detalles técnicos, versión e peso dun paquete.","li":"Lista todos os paquetes instalados ou busca entre eles.","ar":"Rastrexar e elimina dependencias orfas do sistema.","cl":"Baleira a caché de paquetes descargados para liberar espazo."},
 	},
 }
 
@@ -209,16 +221,25 @@ func mapearComando(gestor, accion, paq string, t Translation) string {
 
 						case "se", "buscar", "search":
 							if esAUR || gestor == "pacman" { cmd = gestor + " -Ss " + paq + ` | grep --color=auto -i -E -A 1 "^[^/]+/[^ ]*` + paq + `"` } else if gestor == "apt" { cmd = "apt search --names-only " + paq } else if gestor == "dnf" { cmd = "dnf list \"*" + paq + "*\" 2>/dev/null" } else if gestor == "zypper" { cmd = "zypper se -n " + paq } else if gestor == "apk" { cmd = "apk search " + paq } else if gestor == "xbps" { cmd = "xbps-query -Rs " + paq }
-							if tieneFlatpak && cmd != "" {
-								// Añade título en color cyan y lanza búsqueda en flatpak
-								return cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq
-							}
-							return cmd
+							if tieneFlatpak && cmd != "" { cmd = cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq }
+
+							// El "Chivato" de instalados
+							cmdLista := ""
+							if esAUR || gestor == "pacman" { cmdLista = gestor + " -Q | grep --color=auto -i \"" + paq + "\"" } else if gestor == "apk" { cmdLista = "apk info | grep -i " + paq } else if gestor == "xbps" { cmdLista = "xbps-query -l | grep -i " + paq } else { cmdLista = gestor + " list installed | grep -i " + paq }
+							if tieneFlatpak { cmdLista += " ; flatpak list | grep -i " + paq }
+
+							return cmd + ` ; printf "\n\033[1;36m==> Instalados en tu sistema:\033[0m\n" ; ` + cmdLista
 
 						case "sd", "bdesc", "sdesc":
 							if esAUR || gestor == "pacman" { cmd = gestor + " -Ss " + paq } else if gestor == "apk" { cmd = "apk search -v -d " + paq } else if gestor == "xbps" { cmd = "xbps-query -Rs " + paq } else { cmd = gestor + " search " + paq }
-							if tieneFlatpak { return cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq }
-							return cmd
+							if tieneFlatpak { cmd = cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq }
+
+							// El "Chivato" de instalados
+							cmdLista := ""
+							if esAUR || gestor == "pacman" { cmdLista = gestor + " -Q | grep --color=auto -i \"" + paq + "\"" } else if gestor == "apk" { cmdLista = "apk info | grep -i " + paq } else if gestor == "xbps" { cmdLista = "xbps-query -l | grep -i " + paq } else { cmdLista = gestor + " list installed | grep -i " + paq }
+							if tieneFlatpak { cmdLista += " ; flatpak list | grep -i " + paq }
+
+							return cmd + ` ; printf "\n\033[1;32m==> Instalados en tu sistema:\033[0m\n" ; ` + cmdLista
 
 						case "info", "ver", "show":
 							if esAUR || gestor == "pacman" { cmd = gestor + " -Si " + paq } else if gestor == "apt" { cmd = "apt show " + paq } else if gestor == "apk" { cmd = "apk info -d -s " + paq } else if gestor == "xbps" { cmd = "xbps-query -RS " + paq } else { cmd = gestor + " info " + paq }
