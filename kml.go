@@ -221,25 +221,13 @@ func mapearComando(gestor, accion, paq string, t Translation) string {
 
 						case "se", "buscar", "search":
 							if esAUR || gestor == "pacman" { cmd = gestor + " -Ss " + paq + ` | grep --color=auto -i -E -A 1 "^[^/]+/[^ ]*` + paq + `"` } else if gestor == "apt" { cmd = "apt search --names-only " + paq } else if gestor == "dnf" { cmd = "dnf list \"*" + paq + "*\" 2>/dev/null" } else if gestor == "zypper" { cmd = "zypper se -n " + paq } else if gestor == "apk" { cmd = "apk search " + paq } else if gestor == "xbps" { cmd = "xbps-query -Rs " + paq }
-							if tieneFlatpak && cmd != "" { cmd = cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq }
-
-							// El "Chivato" de instalados
-							cmdLista := ""
-							if esAUR || gestor == "pacman" { cmdLista = gestor + " -Q | grep --color=auto -i \"" + paq + "\"" } else if gestor == "apk" { cmdLista = "apk info | grep -i " + paq } else if gestor == "xbps" { cmdLista = "xbps-query -l | grep -i " + paq } else { cmdLista = gestor + " list installed | grep -i " + paq }
-							if tieneFlatpak { cmdLista += " ; flatpak list | grep -i " + paq }
-
-							return cmd + ` ; printf "\n\033[1;36m==> Instalados en tu sistema:\033[0m\n" ; ` + cmdLista
+							if tieneFlatpak && cmd != "" { return cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq }
+							return cmd
 
 						case "sd", "bdesc", "sdesc":
 							if esAUR || gestor == "pacman" { cmd = gestor + " -Ss " + paq } else if gestor == "apk" { cmd = "apk search -v -d " + paq } else if gestor == "xbps" { cmd = "xbps-query -Rs " + paq } else { cmd = gestor + " search " + paq }
-							if tieneFlatpak { cmd = cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq }
-
-							// El "Chivato" de instalados
-							cmdLista := ""
-							if esAUR || gestor == "pacman" { cmdLista = gestor + " -Q | grep --color=auto -i \"" + paq + "\"" } else if gestor == "apk" { cmdLista = "apk info | grep -i " + paq } else if gestor == "xbps" { cmdLista = "xbps-query -l | grep -i " + paq } else { cmdLista = gestor + " list installed | grep -i " + paq }
-							if tieneFlatpak { cmdLista += " ; flatpak list | grep -i " + paq }
-
-							return cmd + ` ; printf "\n\033[1;32m==> Instalados en tu sistema:\033[0m\n" ; ` + cmdLista
+							if tieneFlatpak { return cmd + ` ; printf "\n\033[36m--- Resultados en Flatpak ---\033[0m\n" ; flatpak search ` + paq }
+							return cmd
 
 						case "info", "ver", "show":
 							if esAUR || gestor == "pacman" { cmd = gestor + " -Si " + paq } else if gestor == "apt" { cmd = "apt show " + paq } else if gestor == "apk" { cmd = "apk info -d -s " + paq } else if gestor == "xbps" { cmd = "xbps-query -RS " + paq } else { cmd = gestor + " info " + paq }
