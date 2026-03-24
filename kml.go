@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const Version = "2.6.2"
+const Version = "2.7.3"
 
 // --- COLORES ---
 const (
