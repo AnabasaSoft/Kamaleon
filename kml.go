@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const Version = "2.7.3"
+const Version = "2.7.4"
 
 // --- COLORES ---
 const (
@@ -230,13 +230,16 @@ func mapearComando(gestor, accion, paq string, t Translation) string {
 			return cmd
 
 		case "up", "actualizar", "update":
+			extra := ""
+			if paq != "" { extra = " " + paq }
+
 			switch gestor {
-				case "yay", "paru": cmd = gestor + " -Syu"
-				case "pacman": cmd = "sudo pacman -Syu"
-				case "apt": cmd = "sudo apt update && sudo apt upgrade"
-				case "apk": cmd = "sudo apk update && sudo apk upgrade"
-				case "xbps": cmd = "sudo xbps-install -Su"
-				default: cmd = "sudo " + gestor + " upgrade"
+				case "yay", "paru": cmd = gestor + " -Syu" + extra
+				case "pacman": cmd = "sudo pacman -Syu" + extra
+				case "apt": cmd = "sudo apt update && sudo apt upgrade" + extra
+				case "apk": cmd = "sudo apk update && sudo apk upgrade" + extra
+				case "xbps": cmd = "sudo xbps-install -Su" + extra
+				default: cmd = "sudo " + gestor + " upgrade" + extra
 			}
 			if tieneFlatpak { return cmd + " && flatpak update" }
 			return cmd
