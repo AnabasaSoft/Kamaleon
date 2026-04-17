@@ -226,7 +226,7 @@ func mapearComando(gestor, accion, paq string, t Translation) string {
 
 		case "rm", "quitar", "remove":
 			if esAUR { cmd = gestor + " -Rs " + paq } else if gestor == "pacman" { cmd = "sudo pacman -Rs " + paq } else if gestor == "apk" { cmd = "sudo apk del " + paq } else if gestor == "xbps" { cmd = "sudo xbps-remove -R " + paq } else { cmd = "sudo " + gestor + " remove " + paq }
-			if tieneFlatpak { return cmd + " ; flatpak uninstall " + paq }
+			if tieneFlatpak { return cmd + " ; flatpak uninstall " + paq + " 2>/dev/null" }
 			return cmd
 
 		case "up", "actualizar", "update":
@@ -289,7 +289,7 @@ func mapearComando(gestor, accion, paq string, t Translation) string {
 
 						case "ar", "autoremove", "huerfanos":
 							if gestor == "yay" { cmd = "yay -Yc" } else if gestor == "paru" { cmd = "paru -c" } else if gestor == "pacman" { cmd = "pacman -Qdtq | sudo xargs -r pacman -Rns" } else if gestor == "zypper" { cmd = "echo -e \"" + t.NotaZypper + "\"" } else if gestor == "apk" { cmd = "echo \"En Alpine se usa 'clean' para mantenimiento.\"" } else if gestor == "xbps" { cmd = "sudo xbps-remove -O" } else { cmd = "sudo " + gestor + " autoremove" }
-							if tieneFlatpak { return cmd + " ; flatpak uninstall --unused" }
+							if tieneFlatpak { return cmd + " ; flatpak uninstall --unused 2>/dev/null" }
 							return cmd
 
 						case "cl", "limpiar", "clean":
